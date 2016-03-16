@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/sessions"
 	"path/filepath"
 	//"log"
+	"path"
 )
 
 const templatesDir = "./templates"
@@ -90,6 +91,10 @@ func main() {
 	r.HandleFunc("/", func(w http.ResponseWriter,r *http.Request){
 		http.Redirect(w, r, "/hello/anonymous", http.StatusTemporaryRedirect)
 	})
+	// Static
+	//if a path not found until now, e.g. "/image/tiny.png"
+	//this will look at "./public/image/tiny.png" at filesystem
+	r.PathPrefix("/favicon.png").HandlerFunc(ServeFileHandler)
 	http.Handle("/", r)
 
 	bind := fmt.Sprintf("%s:%s", os.Getenv("OPENSHIFT_GO_IP"), os.Getenv("OPENSHIFT_GO_PORT"))
@@ -100,4 +105,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func ServeFileHandler(res http.ResponseWriter, req *http.Request) {
+	fname := path.Base(req.URL.Path)
+	http.ServeFile(res, req, "./static/images/"+fname)
 }
